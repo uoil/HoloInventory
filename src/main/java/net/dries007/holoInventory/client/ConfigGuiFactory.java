@@ -39,32 +39,26 @@ import java.util.List;
 import java.util.Set;
 
 @SideOnly(Side.CLIENT)
-public class ConfigGuiFactory implements IModGuiFactory
-{
+public class ConfigGuiFactory implements IModGuiFactory {
+
     @SuppressWarnings("WeakerAccess")
-    public static class ConfigGuiScreen extends GuiConfig
-    {
-        public ConfigGuiScreen(GuiScreen parentScreen)
-        {
+    public static class ConfigGuiScreen extends GuiConfig {
+        public ConfigGuiScreen(final GuiScreen parentScreen) {
             super(parentScreen, getConfigElements(), HoloInventory.MODID, false, false, HoloInventory.MODID);
         }
 
-        private static List<IConfigElement> getConfigElements()
-        {
-            Configuration c = HoloInventory.getConfig();
-            if (c.getCategoryNames().size() == 1)
-            {
+        private static List<IConfigElement> getConfigElements() {
+            final Configuration c = HoloInventory.getConfig();
+            if (c.getCategoryNames().size() == 1) {
                 //noinspection LoopStatementThatDoesntLoop
-                for (String k : c.getCategoryNames())
-                {
+                for (final String k : c.getCategoryNames()) {
                     // Let forge do the work, for loop abused to avoid other strange constructs
                     return new ConfigElement(c.getCategory(k)).getChildElements();
                 }
             }
 
-            List<IConfigElement> list = new ArrayList<>();
-            for (String k : c.getCategoryNames())
-            {
+            final List<IConfigElement> list = new ArrayList<>();
+            for (final String k : c.getCategoryNames()) {
                 list.add(new ConfigElement(c.getCategory(k)));
             }
             return list;
@@ -72,26 +66,22 @@ public class ConfigGuiFactory implements IModGuiFactory
     }
 
     @Override
-    public void initialize(Minecraft minecraftInstance)
-    {
+    public void initialize(final Minecraft minecraftInstance) {
 
     }
 
     @Override
-    public boolean hasConfigGui()
-    {
+    public boolean hasConfigGui() {
         return true;
     }
 
     @Override
-    public GuiScreen createConfigGui(GuiScreen parentScreen)
-    {
+    public GuiScreen createConfigGui(final GuiScreen parentScreen) {
         return new ConfigGuiScreen(parentScreen);
     }
 
     @Override
-    public Set<RuntimeOptionCategoryElement> runtimeGuiCategories()
-    {
+    public Set<RuntimeOptionCategoryElement> runtimeGuiCategories() {
         return null;
     }
 }

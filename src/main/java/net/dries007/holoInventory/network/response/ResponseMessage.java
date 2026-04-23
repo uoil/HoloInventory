@@ -30,78 +30,74 @@ import net.dries007.holoInventory.client.renderers.IRenderer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 
-public abstract class ResponseMessage implements IMessage
-{
+public abstract class ResponseMessage implements IMessage {
+
     private Helper.Type type;
     private int id;
     private BlockPos pos;
 
     @SuppressWarnings("unused") // netty again
-    public ResponseMessage()
-    {
+    public ResponseMessage() {
     }
 
-    public ResponseMessage(int id)
-    {
+    public ResponseMessage(final int id) {
         this.type = Helper.Type.ENTITY;
         this.id = id;
     }
 
-    public ResponseMessage(BlockPos pos)
-    {
+    public ResponseMessage(final BlockPos pos) {
         this.type = Helper.Type.TILE;
         this.pos = pos;
     }
 
     @Override
-    public void fromBytes(ByteBuf buf)
-    {
-        type = Helper.Type.values()[buf.readByte()];
-        switch (type)
-        {
-            case TILE: pos = new BlockPos(buf.readInt(), buf.readInt(), buf.readInt()); break;
-            case ENTITY: id = buf.readInt(); break;
+    public void fromBytes(final ByteBuf buf) {
+        this.type = Helper.Type.values()[buf.readByte()];
+        switch (this.type) {
+            case TILE:
+                this.pos = new BlockPos(buf.readInt(), buf.readInt(), buf.readInt());
+                break;
+            case ENTITY:
+                this.id = buf.readInt();
+                break;
         }
     }
 
     @Override
-    public void toBytes(ByteBuf buf)
-    {
-        buf.writeByte(type.ordinal());
-        switch (type)
-        {
+    public void toBytes(final ByteBuf buf) {
+        buf.writeByte(this.type.ordinal());
+        switch (this.type) {
             case TILE:
-                buf.writeInt(pos.getX());
-                buf.writeInt(pos.getY());
-                buf.writeInt(pos.getZ());
+                buf.writeInt(this.pos.getX());
+                buf.writeInt(this.pos.getY());
+                buf.writeInt(this.pos.getZ());
                 break;
             case ENTITY:
-                buf.writeInt(id);
+                buf.writeInt(this.id);
                 break;
         }
     }
 
-    public final Helper.Type getType()
-    {
-        return type;
+    public final Helper.Type getType() {
+        return this.type;
     }
 
-    public final BlockPos getPos()
-    {
-        return pos;
+    public final BlockPos getPos() {
+        return this.pos;
     }
 
-    public final int getId()
-    {
-        return id;
+    public final int getId() {
+        return this.id;
     }
 
-    public static void handle(ResponseMessage message, IRenderer renderer)
-    {
-        switch (message.getType())
-        {
-            case TILE: ClientEventHandler.cache(message.getPos(), renderer); break;
-            case ENTITY: ClientEventHandler.cache(message.getId(), renderer); break;
+    public static void handle(final ResponseMessage message, final IRenderer renderer) {
+        switch (message.getType()) {
+            case TILE:
+                ClientEventHandler.cache(message.getPos(), renderer);
+                break;
+            case ENTITY:
+                ClientEventHandler.cache(message.getId(), renderer);
+                break;
         }
     }
 }

@@ -30,7 +30,6 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.village.MerchantRecipe;
@@ -41,23 +40,19 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import java.util.List;
 
 @SideOnly(Side.CLIENT)
-public class MerchantRenderer implements IRenderer
-{
-    private final String name;
+public class MerchantRenderer implements IRenderer {
+
     private final List<MerchantRecipe> recipes;
 
-    public MerchantRenderer(String name, MerchantRecipeList input)
-    {
-        this.name = I18n.format(name);
+    public MerchantRenderer(final MerchantRecipeList input) {
         this.recipes = input;
     }
 
     @Override
-    public void render(WorldClient world, RayTraceResult hit, Vec3d pos)
-    {
-        Minecraft mc = Minecraft.getMinecraft();
-        RenderManager rm = mc.getRenderManager();
-        RenderItem ri = mc.getRenderItem();
+    public void render(final WorldClient world, final RayTraceResult hit, final Vec3d pos) {
+        final Minecraft mc = Minecraft.getMinecraft();
+        final RenderManager rm = mc.getRenderManager();
+        final RenderItem ri = mc.getRenderItem();
 
         GlStateManager.translate(pos.x - TileEntityRendererDispatcher.staticPlayerX, pos.y - TileEntityRendererDispatcher.staticPlayerY, pos.z - TileEntityRendererDispatcher.staticPlayerZ);
 
@@ -65,57 +60,39 @@ public class MerchantRenderer implements IRenderer
         GlStateManager.rotate(rm.playerViewX, 0.5F, 0.0F, 0.0F);
         GlStateManager.translate(0, 0, -0.5);
 
-        double d = pos.distanceTo(new Vec3d(TileEntityRendererDispatcher.staticPlayerX, TileEntityRendererDispatcher.staticPlayerY, TileEntityRendererDispatcher.staticPlayerZ));
+        final double d = pos.distanceTo(new Vec3d(TileEntityRendererDispatcher.staticPlayerX, TileEntityRendererDispatcher.staticPlayerY, TileEntityRendererDispatcher.staticPlayerZ));
 
         if (d < 1.75) return;
         GlStateManager.scale(d * 0.2, d * 0.2, d * 0.2);
 
-        // Draw name, with depth disabled
-        {
-            GlStateManager.pushMatrix();
-            GlStateManager.pushAttrib();
-            GlStateManager.rotate(180, 0, 0, 1);
-            GlStateManager.translate(0, -0.6f -0.4f * (recipes.size()/2.0), 0);
-            //GlStateManager.translate(0, -1 - 0.5f * (rows/2.0), 0);
-            GlStateManager.scale(0.03, 0.03, 0.03);
-            int w = mc.fontRenderer.getStringWidth(name);
-            GlStateManager.disableDepth();
-            mc.fontRenderer.drawString(name,  -w/2, 0, 0xFFFFFF);
-            GlStateManager.enableDepth();
-            GlStateManager.popAttrib();
-            GlStateManager.popMatrix();
-        }
-
-        for (int row = 0; row < recipes.size(); row ++)
-        {
-            final MerchantRecipe recipe = recipes.get(row);
+        for (int row = 0; row < this.recipes.size(); row++) {
+            final MerchantRecipe recipe = this.recipes.get(row);
 
             GlStateManager.pushMatrix();
             GlStateManager.pushAttrib();
 
-            RenderHelper.renderStack(ri, recipe.getItemToBuy(), 4, 0, recipes.size(), row);
+            RenderHelper.renderStack(ri, recipe.getItemToBuy(), 4, 0, this.recipes.size(), row);
             if (recipe.hasSecondItemToBuy())
-                RenderHelper.renderStack(ri, recipe.getSecondItemToBuy(), 4, 1, recipes.size(), row);
-            RenderHelper.renderStack(ri, recipe.getItemToSell(), 4, 3, recipes.size(), row);
+                RenderHelper.renderStack(ri, recipe.getSecondItemToBuy(), 4, 1, this.recipes.size(), row);
+            RenderHelper.renderStack(ri, recipe.getItemToSell(), 4, 3, this.recipes.size(), row);
 
             GlStateManager.popAttrib();
             GlStateManager.popMatrix();
         }
         // Draw stack sizes later, to draw over the items (disableDepth)
         GlStateManager.disableDepth();
-        for (int row = 0; row < recipes.size(); row ++)
-        {
-            final MerchantRecipe recipe = recipes.get(row);
+        for (int row = 0; row < this.recipes.size(); row++) {
+            final MerchantRecipe recipe = this.recipes.get(row);
 
             GlStateManager.pushMatrix();
             GlStateManager.pushAttrib();
 
-            int color = recipe.isRecipeDisabled() ? ClientEventHandler.TEXT_COLOR_LIGHT : ClientEventHandler.TEXT_COLOR;
+            final int color = recipe.isRecipeDisabled() ? ClientEventHandler.TEXT_COLOR_LIGHT : ClientEventHandler.TEXT_COLOR;
 
-            RenderHelper.renderName(mc.fontRenderer, recipe.getItemToBuy(), 4, 0, recipes.size(), row, color);
+            RenderHelper.renderName(mc.fontRenderer, recipe.getItemToBuy(), 4, 0, this.recipes.size(), row, color);
             if (recipe.hasSecondItemToBuy())
-                RenderHelper.renderName(mc.fontRenderer, recipe.getSecondItemToBuy(), 4, 1, recipes.size(), row, color);
-            RenderHelper.renderName(mc.fontRenderer, recipe.getItemToSell(), 4, 3, recipes.size(), row, color);
+                RenderHelper.renderName(mc.fontRenderer, recipe.getSecondItemToBuy(), 4, 1, this.recipes.size(), row, color);
+            RenderHelper.renderName(mc.fontRenderer, recipe.getItemToSell(), 4, 3, this.recipes.size(), row, color);
 
             GlStateManager.popAttrib();
             GlStateManager.popMatrix();
@@ -124,9 +101,8 @@ public class MerchantRenderer implements IRenderer
     }
 
     @Override
-    public boolean shouldRender()
-    {
-        return recipes.size() != 0;
+    public boolean shouldRender() {
+        return !this.recipes.isEmpty();
     }
 
 }

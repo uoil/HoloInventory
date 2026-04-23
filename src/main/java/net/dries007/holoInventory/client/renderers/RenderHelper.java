@@ -33,10 +33,9 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
-public class RenderHelper
-{
-    public static void start()
-    {
+public class RenderHelper {
+
+    public static void start() {
         GlStateManager.pushMatrix();
         GlStateManager.pushAttrib();
 
@@ -48,8 +47,7 @@ public class RenderHelper
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
-    public static void end()
-    {
+    public static void end() {
         GlStateManager.disableAlpha();
         GlStateManager.disableRescaleNormal();
         GlStateManager.disableLighting();
@@ -58,8 +56,7 @@ public class RenderHelper
         GlStateManager.popMatrix();
     }
 
-    public static void renderName(FontRenderer fr, ItemStack stack, int cols, int col, int rows, int row, int color)
-    {
+    public static void renderName(final FontRenderer fr, final ItemStack stack, final int cols, final int col, final int rows, final int row, final int color) {
         GlStateManager.pushMatrix();
         GlStateManager.translate(0.4f * (cols / 2.0 - col) - 0.2f, 0.4f * (rows / 2.0 - row) - 0.15f, 0);
         GlStateManager.pushAttrib();
@@ -67,20 +64,19 @@ public class RenderHelper
         GlStateManager.translate(0.2, 0, -0.1);
         GlStateManager.scale(0.01, 0.01, 0.01);
 
-        String size;
+        final String size;
         if (stack.getCount() < 1000) size = String.valueOf(stack.getCount());
         else if (stack.getCount() > 1000) size = ClientEventHandler.DF.format(stack.getCount() / 1000.0) + "k";
         else size = ClientEventHandler.DF.format(stack.getCount() / (1000.0 * 1000.0)) + "M";
 
-        int w = fr.getStringWidth(size);
+        final int w = fr.getStringWidth(size);
         fr.drawStringWithShadow(size, -w, 0, color);
 
         GlStateManager.popAttrib();
         GlStateManager.popMatrix();
     }
 
-    public static void renderStack(RenderItem ri, ItemStack stack, int cols, int col, int rows, int row)
-    {
+    public static void renderStack(final RenderItem ri, final ItemStack stack, final int cols, final int col, final int rows, final int row) {
         GlStateManager.pushMatrix();
         GlStateManager.pushAttrib();
         GlStateManager.translate(0.4f * (cols / 2.0 - col) - 0.2f, 0.4f * (rows / 2.0 - row), 0);
@@ -90,8 +86,7 @@ public class RenderHelper
 
         ri.renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
 
-        if (stack.hasEffect())
-        {
+        if (stack.hasEffect()) {
             GlStateManager.disableAlpha();
             GlStateManager.disableRescaleNormal();
             GlStateManager.disableLighting();

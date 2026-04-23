@@ -27,17 +27,14 @@ import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 
-public class FakeRenderer implements IRenderer
-{
+public class FakeRenderer implements IRenderer {
     @Override
-    public void render(WorldClient world, RayTraceResult hit, Vec3d pos)
-    {
+    public void render(final WorldClient world, final RayTraceResult hit, final Vec3d pos) {
 
     }
 
     @Override
-    public boolean shouldRender()
-    {
+    public boolean shouldRender() {
         return false;
     }
 }

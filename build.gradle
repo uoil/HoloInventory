@@ -1,96 +1,107 @@
-import groovy.json.*
+import org.apache.tools.ant.filters.ReplaceTokens
 
 // For those who want the bleeding edge
 buildscript {
     repositories {
+        maven { url = 'https://files.minecraftforge.net/maven' }
         jcenter()
-        maven {
-            name = "forge"
-            url = "http://files.minecraftforge.net/maven"
-        }
+        mavenCentral()
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:3.+'
     }
 }
-apply plugin: 'net.minecraftforge.gradle.forge'
 
-version = "2.1.1"
+apply plugin: 'net.minecraftforge.gradle'
+
+version = mod_version
+group = mod_group
+archivesBaseName = mod_id
+
 if (System.getenv().BUILD_NUMBER != null) version += "." + System.getenv().BUILD_NUMBER
 
-targetCompatibility = sourceCompatibility = 1.8
-compileJava {
-    sourceCompatibility = targetCompatibility = '1.8'
-}
-
-group= "net.dries007.holoinventory"
-archivesBaseName = "HoloInventory"
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 
 minecraft {
-    version = "1.12.2-14.23.0.2491"
-    runDir = "run"
-    mappings = "snapshot_20171017"
+    mappings channel: 'snapshot', version: mappings_version
+
+    runs {
+        client {
+            workingDirectory project.file('run')
+
+            // Recommended logging data for a userdev environment
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+            // Recommended logging level for the console
+            property 'forge.logging.console.level', 'debug'
+
+            //args '-Dfml.coreMods.load=com.enderio.core.common.transform.EnderCorePlugin'
+            /*mods{
+                omegaconduitprobe{
+                    source(sourceSets.main)
+                }
+            }*/
+
+        }
+
+        server {
+            // Recommended logging data for a userdev environment
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+            // Recommended logging level for the console
+            property 'forge.logging.console.level', 'debug'
+        }
+    }
+
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: '*.jar')
+    minecraft "net.minecraftforge:forge:$forge_version"
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
 }
 
-processResources
-{
-    // replace stuff in mcmod.info, nothing else
+jar.finalizedBy('reobfJar')
+
+task processSource('type': Sync) {
+    inputs.property "version", project.version
+    inputs.property "mcversion", forge_version
+
+    from(sourceSets.main.java) {
+        //include "**.*"
+        filter(ReplaceTokens, tokens:[MOD_NAME:mod_name, MOD_ID:mod_id, MOD_VERSION:mod_version, MC_VERSION:forge_version]);
+
+    }
+
+    into "$buildDir/src"
+}
+
+compileJava{
+    source = processSource.outputs
+}
+
+processResources {
+    // this will ensure that this task is redone when the versions change.
+    inputs.property "version", project.version
+    inputs.property "mcversion", forge_version
+
     from(sourceSets.main.resources.srcDirs) {
-        include 'mcmod.info'
-                
-        // replace version and mcversion
-        expand 'version':project.version, 'mcversion':project.minecraft.version
-    }
-        
-    // copy everything else, thats not the mcmod.info
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'mcmod.info'
+        include "**.*"
+        filter(ReplaceTokens, tokens:[MOD_NAME:mod_name, MOD_ID:mod_id, MOD_VERSION:mod_version, MC_VERSION:forge_version]);
+
     }
 
-    doLast {
-        def updateFile = new File('update.json')
-        if (updateFile.exists())
-        {
-            def outStream = new ByteArrayOutputStream()
-            def result = exec {
-                executable = 'git'
-                args = [ 'log', '-n', '1', "--format='%B'"]
-                standardOutput = outStream
-            }
-            def fullLog = outStream.toString().replaceAll("^\\s*'\\s*|\\s*'\\s*\$", "")
+    from(sourceSets.main.java.srcDirs) {
+        include "**.java"
+        filter(ReplaceTokens, tokens:[MOD_NAME:mod_name, MOD_ID:mod_id, MOD_VERSION:mod_version, MC_VERSION:forge_version]);
 
-            def json = new JsonSlurper().parseText(updateFile.getText())
-            json['promos'][project.minecraft.version + '-latest'] = project.version
-            json['promos'][project.minecraft.version + '-recomended'] = project.version
-            if (!json.containsKey(project.minecraft.version)) json.put(project.minecraft.version, new HashMap<>())
-            def version = json[project.minecraft.version]
-            version.put(project.version, fullLog)
-            updateFile.write JsonOutput.prettyPrint(JsonOutput.toJson(json))
-        }
     }
 }
+//endregion
 
-task deobfJar(type: Jar, dependsOn: 'jar') {
-    from "LICENSE.txt"
-    from sourceSets.main.output
-    classifier "dev"
-    appendix = project.minecraft.version
+//region fixes intellij not using mod resources for runClient
+sourceSets {
+    main {
+        output.resourcesDir = output.classesDir
+    }
 }
-sourceJar {
-    from "LICENSE.txt"
-    exclude("com/**")
-    classifier "src"
-    appendix = project.minecraft.version
-}
-jar {
-    from "LICENSE.txt"
-    exclude("com/**")
-    appendix = project.minecraft.version
-}
-artifacts {
-    archives deobfJar
-}
+//endregion

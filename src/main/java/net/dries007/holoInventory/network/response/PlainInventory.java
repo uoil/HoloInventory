@@ -38,95 +38,82 @@ import net.minecraftforge.items.IItemHandler;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PlainInventory extends ResponseMessage
-{
+public class PlainInventory extends ResponseMessage {
+
     private String name;
     private List<ItemStack> stacks;
 
     @SuppressWarnings("unused") // netty needs it
-    public PlainInventory()
-    {
+    public PlainInventory() {
 
     }
 
-    public PlainInventory(int id, IInventory ii)
-    {
+    public PlainInventory(final int id, final IInventory ii) {
         super(id);
-        scan(ii);
+        this.scan(ii);
     }
 
-    public PlainInventory(BlockPos pos, IInventory ii)
-    {
+    public PlainInventory(final BlockPos pos, final IInventory ii) {
         super(pos);
-        scan(ii);
+        this.scan(ii);
     }
 
-    public PlainInventory(int id, String name, IItemHandler ii)
-    {
+    public PlainInventory(final int id, final String name, final IItemHandler ii) {
         super(id);
-        scan(ii);
+        this.scan(ii);
         this.name = name;
     }
 
-    public PlainInventory(BlockPos pos, String name, IItemHandler ii)
-    {
+    public PlainInventory(final BlockPos pos, final String name, final IItemHandler ii) {
         super(pos);
-        scan(ii);
+        this.scan(ii);
         this.name = name;
     }
 
-    private void add(ItemStack s)
-    {
+    private void add(final ItemStack s) {
         if (s.isEmpty()) return;
-        stacks.add(s);
+        this.stacks.add(s);
     }
 
-    private void scan(IItemHandler ii)
-    {
-        int size = ii.getSlots();
-        stacks = new ArrayList<>(size);
-        for (int i = 0; i < size; i++) add(ii.getStackInSlot(i));
+    private void scan(final IItemHandler ii) {
+        final int size = ii.getSlots();
+        this.stacks = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) this.add(ii.getStackInSlot(i));
     }
 
-    private void scan(IInventory ii)
-    {
-        name = ii.getName();
-        int size = ii.getSizeInventory();
-        stacks = new ArrayList<>(size);
-        for (int i = 0; i < size; i++) add(ii.getStackInSlot(i));
+    private void scan(final IInventory ii) {
+        this.name = ii.getName();
+        final int size = ii.getSizeInventory();
+        this.stacks = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) this.add(ii.getStackInSlot(i));
     }
 
     @Override
-    public void fromBytes(ByteBuf buf)
-    {
+    public void fromBytes(final ByteBuf buf) {
         super.fromBytes(buf);
-        name = ByteBufUtils.readUTF8String(buf);
-        int size = buf.readInt();
-        stacks = new ArrayList<>(size);
-        for (int i = 0; i < size; i++) add(ByteBufUtils.readItemStack(buf));
+        this.name = ByteBufUtils.readUTF8String(buf);
+        final int size = buf.readInt();
+        this.stacks = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) this.add(ByteBufUtils.readItemStack(buf));
     }
 
     @Override
-    public void toBytes(ByteBuf buf)
-    {
+    public void toBytes(final ByteBuf buf) {
         super.toBytes(buf);
-        ByteBufUtils.writeUTF8String(buf, Strings.nullToEmpty(name));
-        buf.writeInt(stacks.size());
-        for (ItemStack stack : stacks) ByteBufUtils.writeItemStack(buf, stack);
+        ByteBufUtils.writeUTF8String(buf, Strings.nullToEmpty(this.name));
+        buf.writeInt(this.stacks.size());
+        for (final ItemStack stack : this.stacks) ByteBufUtils.writeItemStack(buf, stack);
     }
 
-    public PlainInventory setName(String name)
-    {
+    public PlainInventory setName(final String name) {
         this.name = name;
         return this;
     }
 
-    public static class Handler implements IMessageHandler<PlainInventory, IMessage>
-    {
+    public static class Handler implements IMessageHandler<PlainInventory, IMessage> {
         @Override
-        public IMessage onMessage(PlainInventory message, MessageContext ctx)
-        {
-            ResponseMessage.handle(message, new InventoryRenderer(message.name, message.stacks));
+        public IMessage onMessage(final PlainInventory message, final MessageContext ctx) {
+            ResponseMessage.handle(message, new InventoryRenderer(message.stacks));
             return null;
         }
     }

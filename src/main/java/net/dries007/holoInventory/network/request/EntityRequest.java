@@ -36,50 +36,44 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.items.CapabilityItemHandler;
 
-public class EntityRequest extends RequestMessage
-{
+public class EntityRequest extends RequestMessage {
+
     private int id;
 
     @SuppressWarnings("unused") // netty needs this
-    public EntityRequest()
-    {
+    public EntityRequest() {
         super();
     }
 
-    public EntityRequest(int dimension, int id)
-    {
+    public EntityRequest(final int dimension, final int id) {
         super(dimension);
         this.id = id;
     }
 
     @Override
-    public void fromBytes(ByteBuf buf)
-    {
+    public void fromBytes(final ByteBuf buf) {
         super.fromBytes(buf);
-        id = buf.readInt();
+        this.id = buf.readInt();
     }
 
     @Override
-    public void toBytes(ByteBuf buf)
-    {
+    public void toBytes(final ByteBuf buf) {
         super.toBytes(buf);
-        buf.writeInt(id);
+        buf.writeInt(this.id);
     }
 
-    public static class Handler implements IMessageHandler<EntityRequest, ResponseMessage>
-    {
+    public static class Handler implements IMessageHandler<EntityRequest, ResponseMessage> {
         @Override
-        public ResponseMessage onMessage(EntityRequest message, MessageContext ctx)
-        {
-            World world = DimensionManager.getWorld(message.dim);
+        public ResponseMessage onMessage(final EntityRequest message, final MessageContext ctx) {
+            final World world = DimensionManager.getWorld(message.dim);
             if (world == null) return null;
-            Entity entity = world.getEntityByID(message.id);
+            final Entity entity = world.getEntityByID(message.id);
             if (entity == null) return null;
 
             if (entity instanceof IInventory) return new PlainInventory(message.id, (IInventory) entity);
-            else if (entity instanceof IMerchant) return new MerchantRecipes(message.id, (IMerchant) entity, ctx.getServerHandler().player);
-            else if (entity.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null))
-            {
+            else if (entity instanceof IMerchant)
+                return new MerchantRecipes(message.id, (IMerchant) entity, ctx.getServerHandler().player);
+            else if (entity.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null)) {
                 return new PlainInventory(message.id, entity.getName(), entity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null));
             }
 

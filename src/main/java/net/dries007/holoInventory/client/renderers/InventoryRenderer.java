@@ -30,7 +30,6 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
@@ -41,44 +40,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SideOnly(Side.CLIENT)
-public class InventoryRenderer implements IRenderer
-{
-    private final String name;
+public class InventoryRenderer implements IRenderer {
     private final List<ItemStack> stacks;
 
-    public InventoryRenderer(final String name, List<ItemStack> input)
-    {
-        // Minecraft & Localization. One giant clusterfuck.
-        String tmp = I18n.format(name);
-        if (!tmp.equals(name)) this.name = tmp;
-        else
-        {
-            String name2 = name + ".name";
-            tmp = I18n.format(name2);
-            if (!tmp.equals(name2)) this.name = tmp;
-            else this.name = name;
-        }
-
+    public InventoryRenderer(final List<ItemStack> input) {
         this.stacks = new ArrayList<>(input.size());
-        for (ItemStack stack : input)
-        outer: {
-            if (stack == null) continue;
-            for (ItemStack stack2 : stacks)
-            {
-                if (!ItemStack.areItemStackTagsEqual(stack, stack2) || !ItemStack.areItemsEqual(stack, stack2)) continue;
-                stack2.grow(stack.getCount());
-                break outer;
+        for (final ItemStack stack : input)
+            outer:{
+                if (stack == null) continue;
+                for (final ItemStack stack2 : this.stacks) {
+                    if (!ItemStack.areItemStackTagsEqual(stack, stack2) || !ItemStack.areItemsEqual(stack, stack2))
+                        continue;
+                    stack2.grow(stack.getCount());
+                    break outer;
+                }
+                this.stacks.add(stack);
             }
-            this.stacks.add(stack);
-        }
     }
 
     @Override
-    public void render(WorldClient world, RayTraceResult hit, Vec3d pos)
-    {
-        Minecraft mc = Minecraft.getMinecraft();
-        RenderManager rm = mc.getRenderManager();
-        RenderItem ri = mc.getRenderItem();
+    public void render(final WorldClient world, final RayTraceResult hit, final Vec3d pos) {
+        final Minecraft mc = Minecraft.getMinecraft();
+        final RenderManager rm = mc.getRenderManager();
+        final RenderItem ri = mc.getRenderItem();
 
         GlStateManager.translate(pos.x - TileEntityRendererDispatcher.staticPlayerX, pos.y - TileEntityRendererDispatcher.staticPlayerY, pos.z - TileEntityRendererDispatcher.staticPlayerZ);
 
@@ -86,58 +70,39 @@ public class InventoryRenderer implements IRenderer
         GlStateManager.rotate(rm.playerViewX, 0.5F, 0.0F, 0.0F);
         GlStateManager.translate(0, 0, -0.5);
 
-        double d = pos.distanceTo(new Vec3d(TileEntityRendererDispatcher.staticPlayerX, TileEntityRendererDispatcher.staticPlayerY, TileEntityRendererDispatcher.staticPlayerZ));
+        final double d = pos.distanceTo(new Vec3d(TileEntityRendererDispatcher.staticPlayerX, TileEntityRendererDispatcher.staticPlayerY, TileEntityRendererDispatcher.staticPlayerZ));
 
-        if (d < 1.75) return;
+        if (d < 1.75d) return;
         GlStateManager.scale(d * 0.2, d * 0.2, d * 0.2);
 
-        int cols;
-        if (stacks.size() <= 9) cols = stacks.size();
-        else if (stacks.size() <= 27) cols = 9;
-        else if (stacks.size() <= 54) cols = 11;
-        else if (stacks.size() <= 90) cols = 14;
-        else if (stacks.size() <= 109) cols = 18;
+        final int cols;
+        if (this.stacks.size() <= 9) cols = this.stacks.size();
+        else if (this.stacks.size() <= 27) cols = 9;
+        else if (this.stacks.size() <= 54) cols = 11;
+        else if (this.stacks.size() <= 90) cols = 14;
+        else if (this.stacks.size() <= 109) cols = 18;
         else cols = 21;
-        int rows = 1 + ((stacks.size() % cols == 0) ? (stacks.size() / cols) - 1 : stacks.size() / cols);
+        final int rows = 1 + ((this.stacks.size() % cols == 0) ? (this.stacks.size() / cols) - 1 : this.stacks.size() / cols);
 
         if (rows > 4) GlStateManager.scale(0.8, 0.8, 0.8);
 
-        // Draw name, with depth disabled
-        {
-            GlStateManager.pushMatrix();
-            GlStateManager.pushAttrib();
-            GlStateManager.rotate(180, 0, 0, 1);
-            GlStateManager.translate(0, -0.6f -0.4f * (rows/2.0), 0);
-            //GlStateManager.translate(0, -1 - 0.5f * (rows/2.0), 0);
-            GlStateManager.scale(0.03, 0.03, 0.03);
-            int w = mc.fontRenderer.getStringWidth(name);
-            GlStateManager.disableDepth();
-            mc.fontRenderer.drawString(name,  -w/2, 0, 0xFFFFFF);
-            GlStateManager.enableDepth();
-            GlStateManager.popAttrib();
-            GlStateManager.popMatrix();
-        }
-
         int r = 0;
         int c = 0;
-        for (final ItemStack stack : stacks)
-        {
+        for (final ItemStack stack : this.stacks) {
             RenderHelper.renderStack(ri, stack, cols, c, rows, r);
-            if (++c == cols)
-            {
+            if (++c == cols) {
                 r++;
                 c = 0;
             }
         }
+
         // Draw stack sizes later, to draw over the items (disableDepth)
         r = 0;
         c = 0;
         GlStateManager.disableDepth();
-        for (final ItemStack stack : stacks)
-        {
+        for (final ItemStack stack : this.stacks) {
             RenderHelper.renderName(mc.fontRenderer, stack, cols, c, rows, r, ClientEventHandler.TEXT_COLOR);
-            if (++c == cols)
-            {
+            if (++c == cols) {
                 r++;
                 c = 0;
             }
@@ -146,8 +111,7 @@ public class InventoryRenderer implements IRenderer
     }
 
     @Override
-    public boolean shouldRender()
-    {
-        return stacks.size() != 0;
+    public boolean shouldRender() {
+        return !this.stacks.isEmpty();
     }
 }

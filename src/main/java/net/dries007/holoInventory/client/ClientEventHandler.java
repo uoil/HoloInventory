@@ -54,8 +54,8 @@ import java.text.DecimalFormat;
 import java.util.concurrent.TimeUnit;
 
 @SideOnly(Side.CLIENT)
-public class ClientEventHandler
-{
+public class ClientEventHandler {
+
     public static final DecimalFormat DF = new DecimalFormat("#.#");
     public static final int TEXT_COLOR = 0xFFFFFFFF; //255 + (255 << 8) + (255 << 16) + (255 << 24);
     public static final int TEXT_COLOR_LIGHT = 0xFFFFFFFF; //255 + (255 << 8) + (255 << 16) + (255 << 24);
@@ -71,13 +71,11 @@ public class ClientEventHandler
 
     private WeakReference<WorldClient> worldRef = new WeakReference<>(null);
 
-    private ClientEventHandler()
-    {
+    private ClientEventHandler() {
 
     }
 
-    public static void init()
-    {
+    public static void init() {
         if (instance != null) MinecraftForge.EVENT_BUS.unregister(instance);
         instance = new ClientEventHandler();
         MinecraftForge.EVENT_BUS.register(new ClientEventHandler());
@@ -88,38 +86,33 @@ public class ClientEventHandler
         ClientRegistry.registerKeyBinding(keyToggle);
     }
 
-    public static void cache(BlockPos pos, IRenderer iRenderer)
-    {
+    public static void cache(final BlockPos pos, final IRenderer iRenderer) {
         TILE_CACHE.put(pos, iRenderer);
     }
 
-    public static void cache(int id, IRenderer iRenderer)
-    {
+    public static void cache(final int id, final IRenderer iRenderer) {
         ENTITY_CACHE.put(id, iRenderer);
     }
 
     @SubscribeEvent
-    public void onKeyInput(InputEvent.KeyInputEvent event)
-    {
+    public void onKeyInput(final InputEvent.KeyInputEvent event) {
         if (keyToggle.isPressed()) toggleState = !toggleState;
         if (keyHold.isKeyDown()) enabled = true;
     }
 
     @SubscribeEvent
-    public void updateEvent(TickEvent.ClientTickEvent event)
-    {
+    public void updateEvent(final TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END) return;
-        Minecraft mc = Minecraft.getMinecraft();
+        final Minecraft mc = Minecraft.getMinecraft();
         if (mc.isGamePaused()) return;
-        WorldClient mcWorld = Minecraft.getMinecraft().world;
+        final WorldClient mcWorld = Minecraft.getMinecraft().world;
         if (mcWorld == null) return;
 
-        WorldClient world = worldRef.get();
-        if (world == null || mcWorld != world)
-        {
+        final WorldClient world = this.worldRef.get();
+        if (world == null || mcWorld != world) {
             TILE_CACHE.invalidateAll();
             ENTITY_CACHE.invalidateAll();
-            worldRef = new WeakReference<>(mcWorld);
+            this.worldRef = new WeakReference<>(mcWorld);
             return;
         }
 
@@ -134,74 +127,58 @@ public class ClientEventHandler
         TILE_CACHE.cleanUp();
         ENTITY_CACHE.cleanUp();
 
-        RayTraceResult ray = mc.objectMouseOver;
+        final RayTraceResult ray = mc.objectMouseOver;
         if (ray == null) return;
 
-        if (ray.typeOfHit == RayTraceResult.Type.BLOCK)
-        {
+        if (ray.typeOfHit == RayTraceResult.Type.BLOCK) {
             final TileEntity tileEntity = world.getTileEntity(ray.getBlockPos());
-            if (tileEntity == null || !Helper.accept(tileEntity) || Helper.banned.contains(tileEntity.getClass().getCanonicalName())) return;
+            if (!Helper.accept(tileEntity) || Helper.banned.contains(tileEntity.getClass().getCanonicalName()))
+                return;
             HoloInventory.getSnw().sendToServer(new TileRequest(world.provider.getDimension(), ray.getBlockPos()));
-        }
-        else if (ray.typeOfHit == RayTraceResult.Type.ENTITY && Helper.accept(ray.entityHit))
-        {
+        } else if (ray.typeOfHit == RayTraceResult.Type.ENTITY && Helper.accept(ray.entityHit)) {
             HoloInventory.getSnw().sendToServer(new EntityRequest(world.provider.getDimension(), ray.entityHit.getEntityId()));
         }
     }
 
     @SubscribeEvent
-    public void renderEvent(RenderWorldLastEvent event)
-    {
-        if (worldRef.get() == null || !enabled) return;
-        Minecraft mc = Minecraft.getMinecraft();
-        RayTraceResult ray = mc.objectMouseOver;
+    public void renderEvent(final RenderWorldLastEvent event) {
+        if (this.worldRef.get() == null || !enabled) return;
+        final Minecraft mc = Minecraft.getMinecraft();
+        final RayTraceResult ray = mc.objectMouseOver;
         if (ray == null) return;
 
-        if (ray.typeOfHit == RayTraceResult.Type.BLOCK)
-        {
+        if (ray.typeOfHit == RayTraceResult.Type.BLOCK) {
             final IRenderer renderer = TILE_CACHE.getIfPresent(ray.getBlockPos());
             if (renderer == null || !renderer.shouldRender()) return;
-            try
-            {
+            try {
                 RenderHelper.start();
 
-                renderer.render(worldRef.get(), ray, ray.hitVec);
-            }
-            catch (Exception e)
-            {
+                renderer.render(this.worldRef.get(), ray, ray.hitVec);
+            } catch (final Exception e) {
                 HoloInventory.getLogger().warn("Some error while rendering the hologram :(");
                 HoloInventory.getLogger().warn("INFO: Block @ {}", ray.getBlockPos());
                 HoloInventory.getLogger().warn("Please make an issue on github if this happens.");
                 HoloInventory.getLogger().catching(e);
 
                 TILE_CACHE.put(ray.getBlockPos(), new FakeRenderer()); // This should cut back on console spam
-            }
-            finally
-            {
+            } finally {
                 RenderHelper.end();
             }
-        }
-        else if (ray.typeOfHit == RayTraceResult.Type.ENTITY)
-        {
+        } else if (ray.typeOfHit == RayTraceResult.Type.ENTITY) {
             final IRenderer renderer = ENTITY_CACHE.getIfPresent(ray.entityHit.getEntityId());
             if (renderer == null || !renderer.shouldRender()) return;
-            try
-            {
+            try {
                 RenderHelper.start();
 
-                renderer.render(worldRef.get(), ray, ray.hitVec);
-            }
-            catch (Exception e)
-            {
+                renderer.render(this.worldRef.get(), ray, ray.hitVec);
+            } catch (final Exception e) {
                 HoloInventory.getLogger().warn("Some error while rendering the hologram :(");
                 HoloInventory.getLogger().warn("INFO: Entity: {}", ray.entityHit);
                 HoloInventory.getLogger().warn("Please make an issue on github if this happens.");
                 HoloInventory.getLogger().catching(e);
 
                 ENTITY_CACHE.put(ray.entityHit.getEntityId(), new FakeRenderer()); // This should cut back on console spam
-            }
-            finally
-            {
+            } finally {
                 RenderHelper.end();
             }
         }

@@ -32,28 +32,24 @@ import net.minecraftforge.items.CapabilityItemHandler;
 
 import java.util.HashSet;
 
-public class Helper
-{
+public class Helper {
+
     public static boolean showOnSneak;
     public static boolean showOnSprint;
     public static HashSet<String> banned;
 
-    private Helper()
-    {
+    private Helper() {
     }
 
-    public static boolean accept(TileEntity te)
-    {
+    public static boolean accept(final TileEntity te) {
         return te != null && (te instanceof IInventory || te instanceof BlockJukebox.TileEntityJukebox || te instanceof TileEntityEnderChest || te.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null));
     }
 
-    public static boolean accept(Entity entity)
-    {
+    public static boolean accept(final Entity entity) {
         return entity != null && (entity instanceof IInventory || entity.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null));
     }
 
-    public enum Type
-    {
+    public enum Type {
         TILE, ENTITY
     }
 }

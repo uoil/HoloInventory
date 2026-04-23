@@ -34,48 +34,41 @@ import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-public class ServerEventHandler
-{
+public class ServerEventHandler {
+
     public static final ServerEventHandler I = new ServerEventHandler();
 
-    private ServerEventHandler()
-    {
+    private ServerEventHandler() {
 
     }
 
     public static Type catchNext = Type.NONE;
 
-    public enum Type
-    {
+    public enum Type {
         NONE, BAN, UNBAN
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onRightClick(PlayerInteractEvent.RightClickBlock event)
-    {
+    public void onRightClick(final PlayerInteractEvent.RightClickBlock event) {
         if (catchNext == Type.NONE) return;
-        boolean ban = catchNext == Type.BAN;
+        final boolean ban = catchNext == Type.BAN;
         catchNext = Type.NONE;
         event.setCanceled(true);
 
-        TileEntity te = event.getWorld().getTileEntity(event.getPos());
+        final TileEntity te = event.getWorld().getTileEntity(event.getPos());
 
-        if (te == null)
-        {
+        if (te == null) {
             event.getEntityPlayer().sendMessage(new TextComponentString("That block does not have a TileEntity.").setStyle(new Style().setColor(TextFormatting.RED)));
             return;
         }
 
-        if (ban)
-        {
+        if (ban) {
             if (Helper.banned.add(te.getClass().getCanonicalName()))
                 event.getEntityPlayer().sendMessage(new TextComponentString("Banned " + te.getClass().getCanonicalName()).setStyle(new Style().setColor(TextFormatting.GREEN)));
             else
                 event.getEntityPlayer().sendMessage(new TextComponentString(te.getClass().getCanonicalName() + " is already banned.").setStyle(new Style().setColor(TextFormatting.RED)));
-        }
-        else
-        {
-            boolean wasBanned = Helper.banned.remove(te.getClass().getCanonicalName());
+        } else {
+            final boolean wasBanned = Helper.banned.remove(te.getClass().getCanonicalName());
             if (wasBanned)
                 event.getEntityPlayer().sendMessage(new TextComponentString("Unbanned " + te.getClass().getCanonicalName()).setStyle(new Style().setColor(TextFormatting.GREEN)));
             else

@@ -35,91 +35,79 @@ import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 
+import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.Objects;
 
-public class HICommand extends CommandBase
-{
+public class HICommand extends CommandBase {
+
     @Override
-    public String getName()
-    {
+    public String getName() {
         return HoloInventory.MODID.toLowerCase();
     }
 
     @Override
-    public String getUsage(ICommandSender sender)
-    {
-        if (isOP(sender)) return "Use on a SSP world to configure. You don't have permission to modify the server.";
-        return "Use '/" + getName() + " help' for more info.";
+    public String getUsage(@Nonnull final ICommandSender sender) {
+        if (this.isOP(sender))
+            return "Use on a SSP world to configure. You don't have permission to modify the server.";
+        return "Use '/" + this.getName() + " help' for more info.";
     }
 
     @Override
-    public boolean checkPermission(MinecraftServer server, ICommandSender sender)
-    {
+    public boolean checkPermission(@Nonnull final MinecraftServer server, @Nonnull final ICommandSender sender) {
         return true;
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
-    {
-        if (isOP(sender)) throw new CommandException(getUsage(sender));
-        else if (args.length == 0 || args[0].equalsIgnoreCase("help") || args[0].equalsIgnoreCase("h") || args[0].equalsIgnoreCase("?"))  showHelp(sender);
-        else if (args[0].equalsIgnoreCase("ban"))
-        {
+    public void execute(@Nonnull final MinecraftServer server, @Nonnull final ICommandSender sender, @Nonnull final String[] args) throws CommandException {
+        if (this.isOP(sender)) throw new CommandException(this.getUsage(sender));
+        else if (args.length == 0 || args[0].equalsIgnoreCase("help") || args[0].equalsIgnoreCase("h") || args[0].equalsIgnoreCase("?"))
+            this.showHelp(sender);
+        else if (args[0].equalsIgnoreCase("ban")) {
             ServerEventHandler.catchNext = ServerEventHandler.Type.BAN;
             sender.sendMessage(new TextComponentString("Right click a block.").setStyle(new Style().setColor(TextFormatting.AQUA)));
-        }
-        else if (args[0].equalsIgnoreCase("unban"))
-        {
-            if (args.length == 1)
-            {
+        } else if (args[0].equalsIgnoreCase("unban")) {
+            if (args.length == 1) {
                 ServerEventHandler.catchNext = ServerEventHandler.Type.UNBAN;
                 sender.sendMessage(new TextComponentString("Right click a block.").setStyle(new Style().setColor(TextFormatting.AQUA)));
-            }
-            else
-            {
-                boolean wasBanned = Helper.banned.remove(args[1]);
+            } else {
+                final boolean wasBanned = Helper.banned.remove(args[1]);
                 if (wasBanned)
                     sender.sendMessage(new TextComponentString("Unbanned " + args[1]).setStyle(new Style().setColor(TextFormatting.GREEN)));
                 else
                     sender.sendMessage(new TextComponentString(args[1] + " is not banned.").setStyle(new Style().setColor(TextFormatting.RED)));
             }
-        }
-        else if (args[0].equalsIgnoreCase("list"))
-        {
+        } else if (args[0].equalsIgnoreCase("list")) {
             sender.sendMessage(new TextComponentString(HoloInventory.MODID.concat(" banlist:")).setStyle(new Style().setColor(TextFormatting.AQUA)));
-            for (String type : Helper.banned)
-            {
+            for (final String type : Helper.banned) {
                 sender.sendMessage(new TextComponentString(type));
             }
-        }
-        else throw new WrongUsageException(getUsage(sender));
+        } else throw new WrongUsageException(this.getUsage(sender));
     }
 
-    private void showHelp(ICommandSender sender)
-    {
+    private void showHelp(final ICommandSender sender) {
         sender.sendMessage(new TextComponentString(HoloInventory.MODID).setStyle(new Style().setColor(TextFormatting.AQUA)).appendSibling(new TextComponentString(" by Dries007").setStyle(new Style().setColor(TextFormatting.WHITE))));
         sender.sendMessage(new TextComponentString("This command depends on the context in which it is used."));
         sender.sendMessage(new TextComponentString("On a server (OP only) it can be used to (un)ban a block type, server wide."));
         sender.sendMessage(new TextComponentString("On a client (SSP) it can be used to (un)ban a block type, client side only."));
         sender.sendMessage(new TextComponentString("Syntax:").setStyle(new Style().setUnderlined(true)));
-        sender.sendMessage(new TextComponentString("/" + getName() + " <ban>"));
+        sender.sendMessage(new TextComponentString("/" + this.getName() + " <ban>"));
         sender.sendMessage(new TextComponentString("        Ban the next block you right click."));
-        sender.sendMessage(new TextComponentString("/" + getName() + " <unban> [name]"));
+        sender.sendMessage(new TextComponentString("/" + this.getName() + " <unban> [name]"));
         sender.sendMessage(new TextComponentString("        Un ban the next block you right click, or specified via the name."));
-        sender.sendMessage(new TextComponentString("/" + getName() + " <list>"));
+        sender.sendMessage(new TextComponentString("/" + this.getName() + " <list>"));
         sender.sendMessage(new TextComponentString("        Print a list of banned block types on the current side."));
     }
 
     @Override
-    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos)
-    {
+    public List<String> getTabCompletions(@Nonnull final MinecraftServer server, @Nonnull final ICommandSender sender, final String[] args, final BlockPos pos) {
         if (args.length == 1) return getListOfStringsMatchingLastWord(args, "help", "ban", "unban", "list");
-        if (args.length == 2 && args[0].equalsIgnoreCase("unban")) return getListOfStringsMatchingLastWord(args, Helper.banned);
+        if (args.length == 2 && args[0].equalsIgnoreCase("unban"))
+            return getListOfStringsMatchingLastWord(args, Helper.banned);
         return super.getTabCompletions(server, sender, args, pos);
     }
 
-    private boolean isOP(ICommandSender sender)
-    {
-        return sender instanceof EntityPlayer && !sender.getServer().getPlayerList().canSendCommands(((EntityPlayer) sender).getGameProfile());
+    private boolean isOP(final ICommandSender sender) {
+        return sender instanceof EntityPlayer && !Objects.requireNonNull(sender.getServer()).getPlayerList().canSendCommands(((EntityPlayer) sender).getGameProfile());
     }
 }

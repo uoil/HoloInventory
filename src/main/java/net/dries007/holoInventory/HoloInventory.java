@@ -47,11 +47,12 @@ import org.apache.logging.log4j.Logger;
 import static net.dries007.holoInventory.HoloInventory.*;
 
 @Mod(modid = MODID, name = MODNAME, acceptableRemoteVersions = "*", canBeDeactivated = true, guiFactory = GUI_FACTORY)
-public class HoloInventory
-{
+public class HoloInventory {
     public static final String MODID = "holoinventory";
     public static final String MODNAME = "HoloInventory";
-    /** @see net.dries007.holoInventory.client.ConfigGuiFactory */
+    /**
+     * @see net.dries007.holoInventory.client.ConfigGuiFactory
+     */
     public static final String GUI_FACTORY = "net.dries007.holoInventory.client.ConfigGuiFactory";
 
     @Mod.Instance(value = MODID)
@@ -65,32 +66,29 @@ public class HoloInventory
     private Configuration config;
 
     @Mod.EventHandler
-    public void disableEvent(FMLModDisabledEvent event)
-    {
-        logger.info("Mod disabled via Mods list.");
+    public void disableEvent(final FMLModDisabledEvent event) {
+        this.logger.info("Mod disabled via Mods list.");
     }
 
     @Mod.EventHandler
-    public void preInit(FMLPreInitializationEvent event)
-    {
-        logger = event.getModLog();
+    public void preInit(final FMLPreInitializationEvent event) {
+        this.logger = event.getModLog();
 
-        config = new Configuration(event.getSuggestedConfigurationFile());
-        updateConfig();
+        this.config = new Configuration(event.getSuggestedConfigurationFile());
+        this.updateConfig();
 
         int id = 0;
-        snw = NetworkRegistry.INSTANCE.newSimpleChannel(MODID);
+        this.snw = NetworkRegistry.INSTANCE.newSimpleChannel(MODID);
 
         // Request packets (client -> server)
-        snw.registerMessage(EntityRequest.Handler.class, EntityRequest.class, id++, Side.SERVER);
-        snw.registerMessage(TileRequest.Handler.class, TileRequest.class, id++, Side.SERVER);
+        this.snw.registerMessage(EntityRequest.Handler.class, EntityRequest.class, id++, Side.SERVER);
+        this.snw.registerMessage(TileRequest.Handler.class, TileRequest.class, id++, Side.SERVER);
 
         // Response packets (server -> client)
-        snw.registerMessage(PlainInventory.Handler.class, PlainInventory.class, id++, Side.CLIENT);
-        snw.registerMessage(MerchantRecipes.Handler.class, MerchantRecipes.class, id++, Side.CLIENT);
+        this.snw.registerMessage(PlainInventory.Handler.class, PlainInventory.class, id++, Side.CLIENT);
+        this.snw.registerMessage(MerchantRecipes.Handler.class, MerchantRecipes.class, id++, Side.CLIENT);
 
-        if (event.getSide().isClient())
-        {
+        if (event.getSide().isClient()) {
             //noinspection MethodCallSideOnly
             ClientEventHandler.init();
         }
@@ -100,57 +98,48 @@ public class HoloInventory
     }
 
     @Mod.EventHandler
-    public void serverStart(FMLServerStartingEvent event)
-    {
+    public void serverStart(final FMLServerStartingEvent event) {
         event.registerServerCommand(new HICommand());
     }
 
     @SubscribeEvent
-    public void updateConfig(ConfigChangedEvent.OnConfigChangedEvent event)
-    {
-        if (event.getModID().equals(MODID)) updateConfig();
+    public void updateConfig(final ConfigChangedEvent.OnConfigChangedEvent event) {
+        if (event.getModID().equals(MODID)) this.updateConfig();
     }
 
-    public void saveBanned()
-    {
-        config.get(MODID, "banned", new String[0]).set(Helper.banned.toArray(new String[Helper.banned.size()]));
+    public void saveBanned() {
+        this.config.get(MODID, "banned", new String[0]).set(Helper.banned.toArray(new String[Helper.banned.size()]));
 
-        if (config.hasChanged()) config.save();
+        if (this.config.hasChanged()) this.config.save();
     }
 
-    private void updateConfig()
-    {
-        logger.info("Update config");
+    private void updateConfig() {
+        this.logger.info("Update config");
 
-        Helper.showOnSneak = config.get(MODID, "showOnSneak", true, "Show on sneak, bypasses other keyboard settings.").setRequiresWorldRestart(false).setRequiresMcRestart(false).getBoolean();
-        Helper.showOnSprint = config.get(MODID, "showOnSprint", true, "Show on sprint, bypasses other keyboard settings.").setRequiresWorldRestart(false).setRequiresMcRestart(false).getBoolean();
-        Helper.banned = Sets.newHashSet(config.get(MODID, "banned", new String[0]).setRequiresWorldRestart(false).setRequiresMcRestart(false).getStringList());
+        Helper.showOnSneak = this.config.get(MODID, "showOnSneak", false, "Show on sneak, bypasses other keyboard settings.").setRequiresWorldRestart(false).setRequiresMcRestart(false).getBoolean();
+        Helper.showOnSprint = this.config.get(MODID, "showOnSprint", true, "Show on sprint, bypasses other keyboard settings.").setRequiresWorldRestart(false).setRequiresMcRestart(false).getBoolean();
+        Helper.banned = Sets.newHashSet(this.config.get(MODID, "banned", new String[0]).setRequiresWorldRestart(false).setRequiresMcRestart(false).getStringList());
 
-        if (config.hasChanged()) config.save();
+        if (this.config.hasChanged()) this.config.save();
     }
 
-    public static String getVersion()
-    {
+    public static String getVersion() {
         return instance.metadata.version;
     }
 
-    public static HoloInventory getInstance()
-    {
+    public static HoloInventory getInstance() {
         return instance;
     }
 
-    public static SimpleNetworkWrapper getSnw()
-    {
+    public static SimpleNetworkWrapper getSnw() {
         return instance.snw;
     }
 
-    public static Logger getLogger()
-    {
+    public static Logger getLogger() {
         return instance.logger;
     }
 
-    public static Configuration getConfig()
-    {
+    public static Configuration getConfig() {
         return instance.config;
     }
 }

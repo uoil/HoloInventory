@@ -35,48 +35,42 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
-public class MerchantRecipes extends ResponseMessage
-{
+public class MerchantRecipes extends ResponseMessage {
+
     private String name;
     private NBTTagCompound tag;
 
     @SuppressWarnings("unused")
-    public MerchantRecipes()
-    {
+    public MerchantRecipes() {
 
     }
 
-    public MerchantRecipes(int id, IMerchant entity, EntityPlayerMP player)
-    {
+    public MerchantRecipes(final int id, final IMerchant entity, final EntityPlayerMP player) {
         super(id);
-        name = entity.getDisplayName().getFormattedText();
+        this.name = entity.getDisplayName().getFormattedText();
         MerchantRecipeList recipes = entity.getRecipes(player);
         if (recipes == null) recipes = new MerchantRecipeList();
-        tag = recipes.getRecipiesAsTags();
+        this.tag = recipes.getRecipiesAsTags();
     }
 
     @Override
-    public void fromBytes(ByteBuf buf)
-    {
+    public void fromBytes(final ByteBuf buf) {
         super.fromBytes(buf);
-        name = ByteBufUtils.readUTF8String(buf);
-        tag = ByteBufUtils.readTag(buf);
+        this.name = ByteBufUtils.readUTF8String(buf);
+        this.tag = ByteBufUtils.readTag(buf);
     }
 
     @Override
-    public void toBytes(ByteBuf buf)
-    {
+    public void toBytes(final ByteBuf buf) {
         super.toBytes(buf);
-        ByteBufUtils.writeUTF8String(buf, Strings.nullToEmpty(name));
-        ByteBufUtils.writeTag(buf, tag);
+        ByteBufUtils.writeUTF8String(buf, Strings.nullToEmpty(this.name));
+        ByteBufUtils.writeTag(buf, this.tag);
     }
 
-    public static class Handler implements IMessageHandler<MerchantRecipes, IMessage>
-    {
+    public static class Handler implements IMessageHandler<MerchantRecipes, IMessage> {
         @Override
-        public IMessage onMessage(MerchantRecipes message, MessageContext ctx)
-        {
-            ResponseMessage.handle(message, new MerchantRenderer(message.name, new MerchantRecipeList(message.tag)));
+        public IMessage onMessage(final MerchantRecipes message, final MessageContext ctx) {
+            ResponseMessage.handle(message, new MerchantRenderer(new MerchantRecipeList(message.tag)));
             return null;
         }
     }
