@@ -72,7 +72,7 @@ public class InventoryRenderer implements IRenderer {
 
         final double d = pos.distanceTo(new Vec3d(TileEntityRendererDispatcher.staticPlayerX, TileEntityRendererDispatcher.staticPlayerY, TileEntityRendererDispatcher.staticPlayerZ));
 
-        if (d < 1.75d) return;
+        if (d < 1.5d) return;
         GlStateManager.scale(d * 0.2, d * 0.2, d * 0.2);
 
         final int cols;
